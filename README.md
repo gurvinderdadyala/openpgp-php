@@ -5,6 +5,8 @@ OpenPGP.php: OpenPGP for PHP
 
 This is a pure-PHP implementation of the OpenPGP Message Format (RFC 4880).
 
+This repository is forked from singpolyma/openpgp-php, and was only created to learn and understand the code.
+
 * <https://github.com/singpolyma/openpgp-php>
 
 About OpenPGP
