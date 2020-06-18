@@ -62,11 +62,11 @@ class SecretKeyPacket extends PublicKeyPacket
 	function read()
 	{
 		parent::read(); // All the fields from PublicKey
-		
+
 		$this->s2k_useage = ord($this->read_byte());
 		if($this->s2k_useage == 255 || $this->s2k_useage == 254) {
 			$this->symmetric_algorithm = ord($this->read_byte());
-			$this->s2k = OpenPGP\S2K::parse($this->input);
+			$this->s2k = S2K::parse($this->input);
 		} else if($this->s2k_useage > 0) {
 			$this->symmetric_algorithm = $this->s2k_useage;
 		}

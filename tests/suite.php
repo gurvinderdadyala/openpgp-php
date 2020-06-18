@@ -1,12 +1,12 @@
 <?php
 
-require_once dirname(__FILE__).'/../lib/openpgp.php';
+use Leenooks\OpenPGP;
 
-class Serialization extends PHPUnit_Framework_TestCase {
+class Serialization extends PHPUnit\Framework\TestCase {
   public function oneSerialization($path) {
-    $in = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
+    $in = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
     $mid = $in->to_bytes();
-    $out = OpenPGP_Message::parse($mid);
+    $out = OpenPGP\Message::parse($mid);
     $this->assertEquals($in, $out);
   }
 
@@ -375,9 +375,9 @@ class Serialization extends PHPUnit_Framework_TestCase {
   }
 }
 
-class Fingerprint extends PHPUnit_Framework_TestCase {
+class Fingerprint extends PHPUnit\Framework\TestCase {
   public function oneFingerprint($path, $kf) {
-    $m = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
+    $m = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
     $this->assertEquals($m[0]->fingerprint(), $kf);
   }
 

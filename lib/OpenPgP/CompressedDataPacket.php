@@ -80,19 +80,19 @@ class CompressedDataPacket extends Packet implements \IteratorAggregate, \ArrayA
 
 		switch($this->algorithm) {
 			case 0:
-				$this->data = OpenPGP\Message::parse($this->data);
+				$this->data = Message::parse($this->data);
 				break;
 
 			case 1:
-				$this->data = OpenPGP\Message::parse(gzinflate($this->data));
+				$this->data = Message::parse(gzinflate($this->data));
 				break;
 
 			case 2:
-				$this->data = OpenPGP\Message::parse(gzuncompress($this->data));
+				$this->data = Message::parse(gzuncompress($this->data));
 				break;
 
 			case 3:
-				$this->data = OpenPGP\Message::parse(bzdecompress($this->data));
+				$this->data = Message::parse(bzdecompress($this->data));
 				break;
 
 			default:

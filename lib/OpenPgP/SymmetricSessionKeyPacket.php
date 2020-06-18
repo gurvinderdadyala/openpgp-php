@@ -31,7 +31,7 @@ class SymmetricSessionKeyPacket extends Packet
 	{
 		$this->version = ord($this->read_byte());
 		$this->symmetric_algorithm = ord($this->read_byte());
-		$this->s2k = OpenPGP\S2k::parse($this->input);
+		$this->s2k = S2k::parse($this->input);
 		$this->encrypted_data = $this->input;
 	}
 }

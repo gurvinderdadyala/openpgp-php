@@ -12,7 +12,6 @@ use Leenooks\OpenPGP;
  */
 class SignaturePacket extends Packet
 {
-	protected static $DEBUG = FALSE;
 	protected $tag = 2;
 	public $version, $signature_type, $hash_algorithm, $key_algorithm, $hashed_subpackets, $unhashed_subpackets, $hash_head;
 
@@ -119,7 +118,7 @@ class SignaturePacket extends Packet
 				foreach ((array)$this->unhashed_subpackets as $p) {
 					if ($p instanceof SignaturePacket\IssuerPacket) {
 						for($i = 0; $i < strlen($p->data); $i += 2) {
-							$body .= chr(hexdec($p->data{$i}.$p->data{$i+1}));
+							$body .= chr(hexdec($p->data[$i].$p->data[$i+1]));
 						}
 
 						break;
@@ -189,8 +188,14 @@ class SignaturePacket extends Packet
 
 	static function get_subpacket(&$input)
 	{
+		if (self::$DEBUG)
+			dump(['method'=>__METHOD__,'input'=>$input]);
+
 		$len = ord($input[0]);
 		$length_of_length = 1;
+
+		if (self::$DEBUG)
+			dump(['len'=>$len]);
 
 		// if($len < 192) One octet length, no furthur processing
 		if ($len > 190 && $len < 255) { // Two octet length
@@ -203,17 +208,27 @@ class SignaturePacket extends Packet
 			$length_of_length = 5;
 			$unpacked = unpack('N', substr($input, 1, 4));
 			$len = reset($unpacked);
+			if (self::$DEBUG)
+				dump(['len'=>$len,'unpacked'=>$unpacked]);
 		}
 
-		$input = substr($input, $length_of_length); // Chop off length header
+		$input = substr($input,$length_of_length); // Chop off length header
 		$tag = ord($input[0]);
 
 		$class = self::class_for($tag);
+
 		if (self::$DEBUG)
 			dump(['class'=>$class,'tag'=>$tag]);
 
 		if ($class) {
 			$packet = new $class;
+
+			// In case we got the catch all class.
+			if ($class == 'Leenooks\OpenPGP\SignaturePacket\Subpacket')
+				$packet->setTag($tag);
+
+			if ($packet->tag() !== $tag)
+				throw new OpenPGP\Exceptions\PacketTagException(sprintf('Packet tag [%s] doesnt match tag [%s]?',$packet->tag(),$tag));
 			//$packet->tag = $tag;				// @todo Tag should already be set.
 			$packet->input = substr($input, 1, $len-1);
 			$packet->length = $len-1;
@@ -288,7 +303,7 @@ class SignaturePacket extends Packet
 
 				// Store KeyID in Hex
 				for ($i=0;$i<strlen($keyid);$i++) {
-					$keyidHex .= sprintf('%02X',ord($keyid{$i}));
+					$keyidHex .= sprintf('%02X',ord($keyid[$i]));
 				}
 
 				$this->hashed_subpackets = [];

@@ -24,12 +24,13 @@ class RSA
 	// Construct a wrapper object from a key or a message packet
 	function __construct($packet)
 	{
-		if (!is_object($packet))
+		if (! is_object($packet))
 			$packet = OpenPGP\Message::parse($packet);
 
 		// If it's a key (other keys are subclasses of this one)
 		if ($packet instanceof OpenPGP\PublicKeyPacket || $packet[0] instanceof OpenPGP\PublicKeyPacket) {
 			$this->key = $packet;
+
 		} else {
 			$this->message = $packet;
 		}
@@ -155,7 +156,7 @@ class RSA
 
 		$key->setHash(strtolower($hash));
 
-		$sig = new SignaturePacket($message,'RSA',strtoupper($hash));
+		$sig = new OpenPGP\SignaturePacket($message,'RSA',strtoupper($hash));
 		$sig->hashed_subpackets[] = new OpenPGP\SignaturePacket\IssuerPacket($keyid);
 		$sig->sign_data(['RSA'=>[$hash => function($data) use($key) {return [$key->sign($data)];}]]);
 
@@ -180,6 +181,7 @@ class RSA
 
 		if (! $keyid)
 			$keyid = substr($this->key->fingerprint,-16);
+
 		$key->setHash(strtolower($hash));
 
 		$sig = NULL;
@@ -282,13 +284,13 @@ class RSA
 
 		$sk_chk = 0;
 		for ($i=0;$i<strlen($sk);$i++) {
-			$sk_chk = ($sk_chk+ord($sk{$i}))%65536;
+			$sk_chk = ($sk_chk+ord($sk[$i]))%65536;
 		}
 
 		if ($sk_chk != $chk)
 			return NULL;
 
-		return array(ord($data{0}),$sk);
+		return array(ord($data[0]),$sk);
 	}
 
 	static function crypt_rsa_key($mod,$exp,$hash='SHA256')

@@ -2,6 +2,7 @@
 
 namespace Leenooks\OpenPGP\SignaturePacket;
 
+use Leenooks\OpenPGP\Exceptions\PacketTagException;
 use Leenooks\OpenPGP\Packet;
 
 class Subpacket extends Packet
@@ -21,10 +22,18 @@ class Subpacket extends Packet
 
 		return ['header'=>$size.$tag,'body'=>$body];
 	}
-	
+
 	/* Defaults for unsupported packets */
 	function read()
 	{
 		$this->data = $this->input;
+	}
+
+	public function setTag(int $tag): void
+	{
+		if (get_class($this) !== Subpacket::class)
+			throw new PacketTagException('Attempting to set a tag for invalid class: ',get_class($this));
+
+		$this->tag = $tag;
 	}
 }

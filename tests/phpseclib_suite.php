@@ -1,16 +1,12 @@
 <?php
 
-/* The tests which require phpseclib */
+use Leenooks\OpenPGP;
 
-require_once dirname(__FILE__).'/../lib/openpgp.php';
-require_once dirname(__FILE__).'/../lib/openpgp_crypt_rsa.php';
-require_once dirname(__FILE__).'/../lib/openpgp_crypt_symmetric.php';
-
-class MessageVerification extends PHPUnit_Framework_TestCase {
+class MessageVerification extends PHPUnit\Framework\TestCase {
   public function oneMessageRSA($pkey, $path) {
-    $pkeyM = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $pkey));
-    $m = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
-    $verify = new OpenPGP_Crypt_RSA($pkeyM);
+    $pkeyM = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $pkey));
+    $m = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
+    $verify = new OpenPGP\Crypt\RSA($pkeyM);
     $this->assertSame($verify->verify($m), $m->signatures());
   }
 
@@ -31,11 +27,11 @@ class MessageVerification extends PHPUnit_Framework_TestCase {
   }
 
   public function testSigningMessages() {
-    $wkey = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
-    $data = new OpenPGP_LiteralDataPacket('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
-    $sign = new OpenPGP_Crypt_RSA($wkey);
+    $wkey = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
+    $data = new OpenPGP\LiteralDataPacket('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
+    $sign = new OpenPGP\Crypt\RSA($wkey);
     $m = $sign->sign($data)->to_bytes();
-    $reparsedM = OpenPGP_Message::parse($m);
+    $reparsedM = OpenPGP\Message::parse($m);
     $this->assertSame($sign->verify($reparsedM), $reparsedM->signatures());
   }
 
@@ -51,10 +47,10 @@ class MessageVerification extends PHPUnit_Framework_TestCase {
 }
 
 
-class KeyVerification extends PHPUnit_Framework_TestCase {
+class KeyVerification extends PHPUnit\Framework\TestCase {
   public function oneKeyRSA($path) {
-    $m = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
-    $verify = new OpenPGP_Crypt_RSA($m);
+    $m = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
+    $verify = new OpenPGP\Crypt\RSA($m);
     $this->assertSame($verify->verify($m), $m->signatures());
   }
 
@@ -64,13 +60,13 @@ class KeyVerification extends PHPUnit_Framework_TestCase {
 }
 
 
-class Decryption extends PHPUnit_Framework_TestCase {
+class Decryption extends PHPUnit\Framework\TestCase {
   public function oneSymmetric($pass, $cnt, $path) {
-    $m = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
-    $m2 = OpenPGP_Crypt_Symmetric::decryptSymmetric($pass, $m);
-    while($m2[0] instanceof OpenPGP_CompressedDataPacket) $m2 = $m2[0]->data;
+    $m = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/' . $path));
+    $m2 = OpenPGP\Crypt\Symmetric::decryptSymmetric($pass, $m);
+    while($m2[0] instanceof OpenPGP\CompressedDataPacket) $m2 = $m2[0]->data;
     foreach($m2 as $p) {
-      if($p instanceof OpenPGP_LiteralDataPacket) {
+      if($p instanceof OpenPGP\LiteralDataPacket) {
         $this->assertEquals($p->data, $cnt);
       }
     }
@@ -93,7 +89,7 @@ class Decryption extends PHPUnit_Framework_TestCase {
   }
 
   public function testDecryptTwofish() {
-    if(OpenPGP_Crypt_Symmetric::getCipher(10)[0]) {
+    if(OpenPGP\Crypt\Symmetric::getCipher(10)[0]) {
       $this->oneSymmetric("hello", "PGP\n", "symmetric-twofish.gpg");
     }
   }
@@ -107,30 +103,30 @@ class Decryption extends PHPUnit_Framework_TestCase {
   }
 
   public function testDecryptAsymmetric() {
-    $m = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/hello.gpg'));
-    $key = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
-    $decryptor = new OpenPGP_Crypt_RSA($key);
+    $m = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/hello.gpg'));
+    $key = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
+    $decryptor = new OpenPGP\Crypt\RSA($key);
     $m2 = $decryptor->decrypt($m);
-    while($m2[0] instanceof OpenPGP_CompressedDataPacket) $m2 = $m2[0]->data;
+    while($m2[0] instanceof OpenPGP\CompressedDataPacket) $m2 = $m2[0]->data;
     foreach($m2 as $p) {
-      if($p instanceof OpenPGP_LiteralDataPacket) {
+      if($p instanceof OpenPGP\LiteralDataPacket) {
         $this->assertEquals($p->data, "hello\n");
       }
     }
   }
 
   public function testDecryptRoundtrip() {
-    $m = new OpenPGP_Message(array(new OpenPGP_LiteralDataPacket("hello\n")));
-    $key = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
-    $em = OpenPGP_Crypt_Symmetric::encrypt($key, $m);
+    $m = new OpenPGP\Message(array(new OpenPGP\LiteralDataPacket("hello\n")));
+    $key = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
+    $em = OpenPGP\Crypt\Symmetric::encrypt($key, $m);
 
     foreach($key as $packet) {
-	   if(!($packet instanceof OpenPGP_SecretKeyPacket)) continue;
-      $decryptor = new OpenPGP_Crypt_RSA($packet);
+	   if(!($packet instanceof OpenPGP\SecretKeyPacket)) continue;
+      $decryptor = new OpenPGP\Crypt\RSA($packet);
       $m2 = $decryptor->decrypt($em);
 
       foreach($m2 as $p) {
-        if($p instanceof OpenPGP_LiteralDataPacket) {
+        if($p instanceof OpenPGP\LiteralDataPacket) {
           $this->assertEquals($p->data, "hello\n");
         }
       }
@@ -138,32 +134,32 @@ class Decryption extends PHPUnit_Framework_TestCase {
   }
 
   public function testDecryptSecretKey() {
-    $key = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/encryptedSecretKey.gpg'));
-    $skey = OpenPGP_Crypt_Symmetric::decryptSecretKey("hello", $key[0]);
+    $key = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/encryptedSecretKey.gpg'));
+    $skey = OpenPGP\Crypt\Symmetric::decryptSecretKey("hello", $key[0]);
     $this->assertSame(!!$skey, true);
   }
 
   public function testEncryptSecretKeyRoundtrip() {
-    $key = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
-    $enkey = OpenPGP_Crypt_Symmetric::encryptSecretKey("password", $key[0]);
-    $skey = OpenPGP_Crypt_Symmetric::decryptSecretKey("password", $enkey);
+    $key = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
+    $enkey = OpenPGP\Crypt\Symmetric::encryptSecretKey("password", $key[0]);
+    $skey = OpenPGP\Crypt\Symmetric::decryptSecretKey("password", $enkey);
     $this->assertEquals($key[0], $skey);
   }
 
   public function testAlreadyDecryptedSecretKey() {
     $this->expectException(Exception::class);
     $this->expectExceptionMessage("Data is already unencrypted");
-    $key = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
-    OpenPGP_Crypt_Symmetric::decryptSecretKey("hello", $key[0]);
+    $key = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
+    OpenPGP\Crypt\Symmetric::decryptSecretKey("hello", $key[0]);
   }
 }
 
-class Encryption extends PHPUnit_Framework_TestCase {
+class Encryption extends PHPUnit\Framework\TestCase {
   public function oneSymmetric($algorithm) {
-    $data = new OpenPGP_LiteralDataPacket('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
-    $encrypted = OpenPGP_Crypt_Symmetric::encrypt('secret', new OpenPGP_Message(array($data)), $algorithm);
-    $encrypted = OpenPGP_Message::parse($encrypted->to_bytes());
-    $decrypted = OpenPGP_Crypt_Symmetric::decryptSymmetric('secret', $encrypted);
+    $data = new OpenPGP\LiteralDataPacket('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
+    $encrypted = OpenPGP\Crypt\Symmetric::encrypt('secret', new OpenPGP\Message(array($data)), $algorithm);
+    $encrypted = OpenPGP\Message::parse($encrypted->to_bytes());
+    $decrypted = OpenPGP\Crypt\Symmetric::decryptSymmetric('secret', $encrypted);
     $this->assertEquals($decrypted[0]->data, 'This is text.');
   }
 
@@ -192,17 +188,17 @@ class Encryption extends PHPUnit_Framework_TestCase {
   }
 
   public function testEncryptSymmetricTwofish() {
-    if(OpenPGP_Crypt_Symmetric::getCipher(10)[0]) {
+    if(OpenPGP\Crypt\Symmetric::getCipher(10)[0]) {
       $this->oneSymmetric(10);
     }
   }
 
   public function testEncryptAsymmetric() {
-    $key = OpenPGP_Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
-    $data = new OpenPGP_LiteralDataPacket('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
-    $encrypted = OpenPGP_Crypt_Symmetric::encrypt($key, new OpenPGP_Message(array($data)));
-    $encrypted = OpenPGP_Message::parse($encrypted->to_bytes());
-    $decryptor = new OpenPGP_Crypt_RSA($key);
+    $key = OpenPGP\Message::parse(file_get_contents(dirname(__FILE__) . '/data/helloKey.gpg'));
+    $data = new OpenPGP\LiteralDataPacket('This is text.', array('format' => 'u', 'filename' => 'stuff.txt'));
+    $encrypted = OpenPGP\Crypt\Symmetric::encrypt($key, new OpenPGP\Message(array($data)));
+    $encrypted = OpenPGP\Message::parse($encrypted->to_bytes());
+    $decryptor = new OpenPGP\Crypt\RSA($key);
     $decrypted = $decryptor->decrypt($encrypted);
     $this->assertEquals($decrypted[0]->data, 'This is text.');
   }

@@ -13,7 +13,7 @@ class IssuerPacket extends Subpacket
 	{
 		$bytes = '';
 		for($i = 0; $i < strlen($this->data); $i += 2) {
-			$bytes .= chr(hexdec($this->data{$i}.$this->data{$i+1}));
+			$bytes .= chr(hexdec($this->data[$i].$this->data[$i+1]));
 		}
 		return $bytes;
 	}

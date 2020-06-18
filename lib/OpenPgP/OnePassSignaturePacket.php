@@ -16,7 +16,7 @@ class OnePassSignaturePacket extends Packet
 	{
 		$body = chr($this->version).chr($this->signature_type).chr($this->hash_algorithm).chr($this->key_algorithm);
 		for($i = 0; $i < strlen($this->key_id); $i += 2) {
-			$body .= chr(hexdec($this->key_id{$i}.$this->key_id{$i+1}));
+			$body .= chr(hexdec($this->key_id[$i].$this->key_id[$i+1]));
 		}
 		$body .= chr((int)$this->nested);
 		return $body;

@@ -182,9 +182,12 @@ abstract class Packet
 	{
 		// Make sure our tag is set in our packet class.
 		try {
-			if (is_null($this->tag))
+			if (is_null($this->tag) AND get_class($this) != 'Leenooks\OpenPGP\SignaturePacket\Subpacket')
 				throw new PacketTagException('Missing tag in '.get_class($this));
+
 		} catch (\Exception $e) {
+			debug_print_backtrace(0,5);
+			dump($this);
 			dd($e->getMessage());
 		}
 
@@ -197,7 +200,7 @@ abstract class Packet
 				'substr2'=>substr(substr(get_class($this),strlen("Leenooks\OpenPGP")+1),0,-6),
 				'tags: '=>serialize(self::$tags)]);
 
-		$this->tag = array_search(substr(substr(get_class($this),strlen("Leenooks\OpenPGP")+1),0,-6),self::$tags);
+		//$this->tag = array_search(substr(substr(get_class($this),strlen("Leenooks\OpenPGP")+1),0,-6),self::$tags);
 		$this->data = $data;
 	}
 
@@ -218,6 +221,11 @@ abstract class Packet
 		$tag = chr($this->tag|0xC0);						// First two bits are 1 for new packet format
 
 		return ['header'=>$tag.$size,'body'=>$body];
+	}
+
+	public function tag(): int
+	{
+		return $this->tag;
 	}
 
 	function to_bytes()

@@ -103,7 +103,7 @@ class Symmetric
 					$cipher->setKey($p->s2k->make_key($pass, $key_bytes));
 					$padAmount = $key_block_bytes - (strlen($p->encrypted_data) % $key_block_bytes);
 					$data = substr($cipher->decrypt($p->encrypted_data . str_repeat("\0", $padAmount)), 0, strlen($p->encrypted_data));
-					$decrypted = self::decryptPacket($epacket, ord($data{0}), substr($data, 1));
+					$decrypted = self::decryptPacket($epacket, ord($data[0]), substr($data, 1));
 
 				} else {
 					list($cipher,$key_bytes,$key_block_bytes) = self::getCipher($p->symmetric_algorithm);
@@ -208,7 +208,6 @@ class Symmetric
 
 			try {
 				$msg = OpenPGP\Message::parse($data);
-				dump(['data'=>$data,'msg'=>$msg]);
 
 			} catch (Exception $ex) {
 				$msg = NULL;
@@ -246,7 +245,7 @@ class Symmetric
 		switch($algo) {
 			case NULL:
 			case 0:
-				throw new Exception("Data is already unencrypted");
+				throw new \Exception("Data is already unencrypted");
 
 			case 2:
 				$cipher = new Crypt_TripleDES(Crypt_TripleDES::MODE_CFB);
@@ -256,9 +255,9 @@ class Symmetric
 
 			case 3:
 				if (class_exists('OpenSSLWrapper')) {
-					$cipher = new OpenSSLWrapper("CAST5-CFB");
+					$cipher = new \OpenSSLWrapper("CAST5-CFB");
 				} else if(defined('MCRYPT_CAST_128')) {
-					$cipher = new MCryptWrapper(MCRYPT_CAST_128);
+					$cipher = new \MCryptWrapper(MCRYPT_CAST_128);
 				}
 				break;
 
@@ -320,7 +319,7 @@ class Symmetric
 		$mkChk = 0;
 
 		for($i = 0; $i < strlen($s); $i++) {
-			$mkChk = ($mkChk + ord($s{$i})) % 65536;
+			$mkChk = ($mkChk + ord($s[$i])) % 65536;
 		}
 
 		return $mkChk;

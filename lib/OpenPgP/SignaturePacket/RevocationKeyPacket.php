@@ -17,7 +17,7 @@ class RevocationKeyPacket extends Subpacket
 		$bytes .= chr($this->key_algorithm);
 
 		for($i = 0; $i < strlen($this->fingerprint); $i += 2) {
-			$bytes .= chr(hexdec($this->fingerprint{$i}.$this->fingerprint{$i+1}));
+			$bytes .= chr(hexdec($this->fingerprint[$i].$this->fingerprint[$i+1]));
 		}
 
 		return $bytes;

@@ -31,7 +31,7 @@ class AsymmetricSessionKeyPacket extends Packet
 
 				// Store KeyID in Hex
 				for ($i=0;$i<strlen($rawkeyid);$i++) {
-					$this->keyid .= sprintf('%02X',ord($rawkeyid{$i}));
+					$this->keyid .= sprintf('%02X',ord($rawkeyid[$i]));
 				}
 
 				$this->key_algorithm = ord($this->read_byte());
@@ -49,7 +49,7 @@ class AsymmetricSessionKeyPacket extends Packet
 		$bytes = chr($this->version);
 
 		for ($i=0;$i<strlen($this->keyid);$i+= 2) {
-			$bytes .= chr(hexdec($this->keyid{$i}.$this->keyid{$i+1}));
+			$bytes .= chr(hexdec($this->keyid[$i].$this->keyid[$i+1]));
 		}
 
 		$bytes .= chr($this->key_algorithm);
